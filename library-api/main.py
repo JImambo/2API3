@@ -70,10 +70,23 @@ def get_book_by_id(book_id: int):
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
         detail=f"Le livre avec l'ID {book_id} est introuvable."
-    ) 
-
+    )
 
 # POST /books
+@app.post(
+    "/books",
+    status_code=status.HTTP_201_CREATED,
+    response_model=Book,
+    tags=["Books"],
+    summary="Ajouter un nouveau livre"
+)
+def create_book(book: Book):
+    global next_id
+    book.id = next_id
+    book_data = book.model_dump()
+    books_db.append(book_data)
+    next_id += 1
+    return book
 
 
 # PUT /books/{book_id}
