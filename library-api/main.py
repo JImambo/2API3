@@ -129,3 +129,19 @@ def patch_book(book_id: int, book_update: Book):
     )
 
 # DELETE /books/{book_id}
+@app.delete(
+    "/books/{book_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    tags=["Books"],
+    summary="Supprimer un livre de la bibliothèque"
+)
+def delete_book(book_id: int):
+    for index, book in enumerate(books_db):
+        if book["id"] == book_id:
+            books_db.pop(index)
+            return None
+    
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=f"Action impossible : aucun livre"
+    )
