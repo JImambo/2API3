@@ -88,11 +88,44 @@ def create_book(book: Book):
     next_id += 1
     return book
 
-
 # PUT /books/{book_id}
-
+@app.put(
+    "/books/{book_id}",
+    response_model=Book,
+    tags=["Books"],
+    summary="Remplacer un livre existant"
+)
+def update_book(book_id: int, book_update: Book):
+    for index, book in enumerate(books_db):
+        if book["id"] == book_id:
+            book_update.id = book_id
+            books_db[index] = book_update.model_dump()
+            return book_update
+    
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=f"Impossible de mettre à jour : le livre {book_id} n'existe pas"
+    )
 
 # PATCH /books/{book_id}
-
+@app.patch(
+    "/books/{book_id}", 
+    response_model=Book, 
+    tags=["Books"],
+    summary="Modifier partiellement un livre"
+)
+def patch_book(book_id: int, book_update: Book):
+    for index, existing_book in enumerate(books_db):
+        if existing_book["id"] == book_id:
+            update_data = book_update.model_dump(exclude_unset=True)
+            existing_book.update(update_data)
+            existing_book["id"] = book_id
+            books_db[index] = existing_book
+            return existing_book
+            
+    raise HTTPException(
+        status_code=404, 
+        detail="Livre non trouvé"
+    )
 
 # DELETE /books/{book_id}
