@@ -52,8 +52,23 @@ def read_root():
     summary="Récupérer tous les livres",
     description="Rétourne la liste complète des livres enrégistrés en mémoire"
 )
-def get_all_books():
-    return books_db
+def get_all_books(
+    author: Optional[str] = None, 
+    year: Optional[int] = None,
+    skip: int = 0,
+    limit: int = 10
+):
+    results = books_db
+    
+    if author:
+        results = [b for b in results if author.lower() in b["author"].lower()]
+    
+    if year:
+        results = [b for b in results if b["year"] == year]
+    
+    paginated_results = results[skip: skip + limit]
+    
+    return paginated_results
 
 # GET /books/{book_id}
 @app.get(
