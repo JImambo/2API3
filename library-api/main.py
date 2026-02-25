@@ -53,12 +53,20 @@ def read_root():
     description="Rétourne la liste complète des livres enrégistrés en mémoire"
 )
 def get_all_books(
+    search: Optional[str] = None,
     author: Optional[str] = None, 
     year: Optional[int] = None,
-    skip: int = 0,
+    sort: Optional[str] = "id",
+    order: str = "asc",
+    page: int = 1,
     limit: int = 10
 ):
     results = books_db
+    
+    if search:
+        results = [
+            b for b in results if search.lower() in b["title"].lower()
+        ]
     
     if author:
         results = [b for b in results if author.lower() in b["author"].lower()]
@@ -66,6 +74,14 @@ def get_all_books(
     if year:
         results = [b for b in results if b["year"] == year]
     
+    reverse_order = True if order.lower() == "desc" else False
+    
+    try:
+        results = sorted(results, key=lambda b: b.get(sort, 0), reverse=reverse_order)
+    except Exception:
+        pass
+    
+    skip = (page - 1) * limit
     paginated_results = results[skip: skip + limit]
     
     return paginated_results
