@@ -1,6 +1,7 @@
-from fastapi import FastAPI, HTTPException, status
-from pydantic import BaseModel, Field
+from fastapi import FastAPI, HTTPException, Response, status
+from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional
+import re
 
 app = FastAPI(
     title="Library API",
@@ -15,7 +16,7 @@ class Book(BaseModel):
     author: str = Field(..., min_length=2, max_length=100, description="Auteur du livre")
     year: Optional[int] = Field(None, ge=1000, le=2100, description="Année de publication")
     genre: Optional[str] = Field(None, max_length=50, description="Genre littéraire")
-    isbn: Optional[str] = Field(None, max_length=17, description="Code ISBN-13")
+    isbn: Optional[str] = Field(None, pattern=r"^(978|979)[- ]?\d{1,5}[- ]?\d{1,7}[- ]?\d{1,7}[- ]?\d{1}$", max_length=17, description="Format ISBN-13 valide")
     
     class Config:
         json_schema_extra = {
@@ -111,12 +112,17 @@ def get_book_by_id(book_id: int):
     tags=["Books"],
     summary="Ajouter un nouveau livre"
 )
-def create_book(book: Book):
+def create_book(book: Book, response: Response):
     global next_id
+    
     book.id = next_id
     book_data = book.model_dump()
     books_db.append(book_data)
+    
+    response.headers["Location"] = f"/books/{next_id}"
+    
     next_id += 1
+    
     return book
 
 # PUT /books/{book_id}
